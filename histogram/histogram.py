@@ -34,7 +34,6 @@ def histogram_seq(n: int, data: List[int], max_exp: int):
         # get duration
         duration = stop - start
         seq_duration.append(duration)
-        print(n, data)
         n *= 10
         
     
@@ -66,7 +65,6 @@ def histogram_para_thread(data: List[int], max_exp: int):
         
         end = time.time()
 
-        print(n, data)
         return round(end - start, 8)
 
 
@@ -111,7 +109,7 @@ def histogram_para_thread(data: List[int], max_exp: int):
 
 def main():
     n = 10
-    max_exp = 3
+    max_exp = 9
     max_size = 10 ** max_exp
     data = [0 for _ in range(max_size)]
 
