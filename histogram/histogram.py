@@ -3,11 +3,16 @@ import random
 from prettytable import PrettyTable
 from typing import List
 from multiprocessing.pool import ThreadPool
+import concurrent.futures
 
 BINS = 10
 MAX_THREADS = 512
+n = 10
+max_exp = 5
+max_size = 10 ** max_exp
+data = [0 for _ in range(max_size)]
 
-def histogram_seq(n: int, data: List[int], max_exp: int):
+def histogram_seq():
     max_size = 10 ** max_exp
     seq_duration = []
 
@@ -48,11 +53,11 @@ def histogram_seq(n: int, data: List[int], max_exp: int):
     print(t)
     return
 
-def histogram_para_thread(data: List[int], max_exp: int):
-    max_size = 10 ** max_exp
-    par_durations = [[0 for _ in range(10)] for _ in range(9)]
 
-    def task(n):
+
+# PARALLEL IMPLEMENTATION
+
+def task(n):
         t_histogram = [0 for _ in range(BINS)]
 
         start = time.time()
@@ -67,6 +72,9 @@ def histogram_para_thread(data: List[int], max_exp: int):
 
         return round(end - start, 8)
 
+def histogram_para_thread():
+    max_size = 10 ** max_exp
+    par_durations = [[0 for _ in range(10)] for _ in range(9)]
 
     threads = 1
     col = 0
@@ -107,15 +115,60 @@ def histogram_para_thread(data: List[int], max_exp: int):
 
     return
 
-def main():
-    n = 10
-    max_exp = 9
+
+
+# do the same function using ProcessPoolExecutor instead of ThreadPool
+def histogram_para_process():
     max_size = 10 ** max_exp
-    data = [0 for _ in range(max_size)]
+    par_durations = [[0 for _ in range(10)] for _ in range(9)]
 
-    histogram_seq(n, data, max_exp)
+    threads = 1
+    col = 0
 
-    histogram_para_thread(data, max_exp)
+    print("Processing histogram in  parallel using ProcessPoolExecutor ...")
+
+    while threads <= MAX_THREADS:
+        print("  Using " + str(threads) + " threads")
+
+        row = 0
+        
+        items = [10 ** i for i in range(1, max_exp + 1)]
+
+        with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor:
+            futures = [executor.submit(task, item) for item in items]
+            
+            for result in executor.map(task, items):
+                par_durations[row][col] = result
+                row += 1
+        
+        threads *= 2
+        col += 1
+
+    header = ["n (size)"]
+
+    for i in range(10):
+        x = 2 ** i
+        header.append("T=" +  str(x) + " (s)")
+        
+    t = PrettyTable(header)
+    
+
+    for i in range(max_exp):
+        rowRes = ["10^" + str(i+1)] + par_durations[i]
+        t.add_row(rowRes)
+    
+    t.align = "l"
+    print(t)
+
+    return
+
+def main():
+
+    # histogram_seq()
+
+    histogram_para_thread()
+
+    histogram_para_process()
 
 
 if __name__ == "__main__":
