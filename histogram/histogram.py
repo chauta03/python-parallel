@@ -8,7 +8,7 @@ import concurrent.futures
 BINS = 10
 MAX_THREADS = 512
 n = 10
-max_exp = 5
+max_exp = 7
 max_size = 10 ** max_exp
 data = [0 for _ in range(max_size)]
 
