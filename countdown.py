@@ -32,7 +32,7 @@ def implementation_3():
     process_2.join()
 
 def main():
-    implementation_3()
+    implementation_1()
 
 if __name__ == "__main__":
     main()
