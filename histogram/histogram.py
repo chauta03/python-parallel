@@ -4,6 +4,7 @@ from prettytable import PrettyTable
 from typing import List
 from multiprocessing.pool import ThreadPool
 import concurrent.futures
+import os
 
 BINS = 10
 MAX_THREADS = 512
@@ -13,6 +14,7 @@ max_size = 10 ** max_exp
 data = [0 for _ in range(max_size)]
 
 def histogram_seq():
+    n = 10
     max_size = 10 ** max_exp
     seq_duration = []
 
@@ -120,7 +122,9 @@ def histogram_para_thread():
 # do the same function using ProcessPoolExecutor instead of ThreadPool
 def histogram_para_process():
     max_size = 10 ** max_exp
+    n = 10
     par_durations = [[0 for _ in range(10)] for _ in range(9)]
+    n_cores = os.cpu_count()
 
     threads = 1
     col = 0
@@ -133,11 +137,19 @@ def histogram_para_process():
         row = 0
         
         items = [10 ** i for i in range(1, max_exp + 1)]
+        step = len(items) // n_cores
+
 
         with concurrent.futures.ProcessPoolExecutor(max_workers=threads) as executor:
-            futures = [executor.submit(task, item) for item in items]
+            # divide array items into chunks and process each chunk in parallel
+            if step != 0:
+                chunks = [items[i:i+step] for i in range(0, len(items), step)]
+
+                chunks[-1].extend(items[len(chunks) * step:]) 
+            else:
+                chunks = [[i] for i in items]
             
-            for result in executor.map(task, items):
+            for result in executor.map(task, chunks):
                 par_durations[row][col] = result
                 row += 1
         
